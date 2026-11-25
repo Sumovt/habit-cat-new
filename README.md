@@ -1,64 +1,37 @@
-# 🐱 習慣小貓 · Habit Cat
+# 🐱 習慣小貓 · Habit Cat (v3)
 
-> 療癒系習慣養成網頁遊戲，畫面與操作風格高度還原經典《旅行青蛙》（旅かえる）。
+> 療癒系習慣養成網頁遊戲，畫面高度還原《旅行青蛙》，支援 Gmail 登入與雲端同步。
 
-把青蛙換成小貓，把「旅行」換成**你自己定義的每日／每週／每月目標**。  
-完成目標就能獲得 **XP** 與 **金幣**，用 XP 提升等級，用金幣兌換自己設定的獎勵。
+## 新功能
 
-**核心只有一件事：幫助你養成每天的好習慣。**
+1. **Gmail / Google 登入**
+2. **資料存到帳號**（Firestore 雲端同步）
+3. **成就系統** — 預設 10/50/100/300/500/1000 次，也可自訂成就
 
----
+## 線上玩
 
-## ✨ 特色
-
-- 🏡 **高度還原旅行青蛙房間畫面** — 溫暖樹屋 + 小貓坐在桌邊
-- 🐱 **可愛小貓陪伴** — 等級提升時有慶祝效果
-- 📅 **三種目標週期**（每日 / 每週 / 每月）
-- ⭐ **XP 與等級系統**
-- 🪙 **金幣 + 自訂獎勵商店**
-- 📱 **手機全螢幕體驗**，按鈕位置完全仿旅行青蛙（左下目標、右下商店與成就、右上選單）
-- 💾 本機儲存 + 匯出／匯入備份
-
----
-
-## 🎮 怎麼玩
-
-1. 打開網頁，會看到溫暖的樹屋與小貓
-2. 點左下「目標」查看／完成每日、每週、每月目標
-3. 完成後立刻獲得 XP 與金幣
-4. 點右下「商店」用金幣兌換自己設定的獎勵
-5. 點右下「成就」看等級與累積進度
-6. 右上「選單」可改名字、備份資料
-
-沒有壓力、沒有失敗懲罰，只有溫柔的正向回饋。
-
----
-
-## 🚀 線上遊玩（GitHub Pages）
-
-部署完成後網址：  
 **https://sumovt.github.io/habit-cat-new/**
 
-（如果還沒生效，到 Repo → Settings → Pages → Source 選 `Deploy from a branch`，Branch 選 `main`，資料夾 `/ (root)`，然後等幾分鐘。）
+## 啟用雲端登入（必做）
 
----
+1. 到 [Firebase Console](https://console.firebase.google.com) 建立專案
+2. Authentication → 啟用 Google 登入
+3. Firestore → 建立資料庫（測試模式即可）
+4. 專案設定 → 新增 Web 應用 → 複製 `firebaseConfig`
+5. 打開 `index.html`，搜尋 `YOUR_API_KEY`，把整段 `firebaseConfig` 換成你複製的內容
+6. 存檔並重新部署
 
-## 📁 專案結構
-
+建議 Firestore 規則：
 ```
-habit-cat-new/
-├── index.html     # 完整遊戲
-├── home-bg.jpg    # 樹屋背景圖（小貓在房間）
-├── README.md
-└── LICENSE
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
 ```
 
----
-
-## 📄 License
-
-MIT License
-
-靈感來源：[旅行青蛙 / 旅かえる](https://ja.wikipedia.org/wiki/%E6%97%85%E3%81%8B%E3%81%88%E3%82%8B)（Hit-Point）
-
-用溫柔的方式照顧自己的習慣，小貓會陪著你一起慢慢變好 🌿
+## License
+MIT
