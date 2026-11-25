@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>習慣小貓 · Habit Cat</title>
+  <meta name="description" content="療癒系習慣養成遊戲。養一隻小貓，完成自定義每日／每週／每月目標，賺取 XP 與金幣。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --wood: #e8d5b7;
+      --wood-dark: #c4a882;
+      --ink: #4a3f35;
+      --muted: #8a7b6d;
+      --cream: #fdf6ee;
+      --accent: #7ec8a3;
+      --coin: #e8a04a;
+      --xp: #f0c14a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: "Noto Sans TC", system-ui, sans-serif;
+      background: #2a2520;
+      color: var(--ink);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .game {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      height: 100dvh;
+      margin: 0 auto;
+      overflow: hidden;
+      background: #f5ebe0;
+    }
+
+    /* ========== Background Scene ========== */
+    .scene {
+      position: absolute;
+      inset: 0;
+      background: url("home-bg.jpg") center / cover no-repeat;
+      z-index: 1;
+    }
+
+    .scene::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.04) 0%, transparent 18%, transparent 75%, rgba(0,0,0,0.12) 100%);
+      pointer-events: none;
+    }
+
+    /* ========== Top UI ========== */
+    .top-bar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+
+    .top-bar > * { pointer-events: auto; }
+
+    .currency {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 252, 245, 0.92);
+      border: 2px solid #d4c4a8;
+      border-radius: 999px;
+      padding: 5px 10px 5px 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      color: #5a4a3a;
+    }
+
+    .currency .plus {
+      width: 22px;
+      height: 22px;
+      background: #f0c14a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: #5a4a00;
+      margin-left: 2px;
+      border: 1.5px solid #d4a830;
+    }
+
+    .menu-btn {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 252, 245, 0.92);
+      border: 2px solid #d4c4a8;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #6a5a4a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      cursor: pointer;
+      gap: 1px;
+    }
+
+    .menu-btn .icon {
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    /* ========== Bottom buttons (Travel Frog style) ========== */
+    .bottom-left {
+      position: absolute;
+      bottom: 18px;
+      left: 14px;
+      z-index: 20;
+    }
+
+    .bottom-right {
+      position: absolute;
+      bottom: 18px;
+      right: 14px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wood-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: linear-gradient(180deg, #f5e6d0 0%, #e8d4b5 100%);
+      border: 2.5px solid #c4a882;
+      border-radius: 16px;
+      padding: 10px 16px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #5a4a3a;
+      box-shadow: 0 3px 0 #b8956a, 0 4px 10px rgba(0,0,0,0.12);
+      cursor: pointer;
+      min-width: 110px;
+      transition: transform 0.1s;
+    }
+
+    .wood-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #b8956a, 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .icon-btn {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(180deg, #f5e6d0 0%, #e8d4b5 100%);
+      border: 2.5px solid #c4a882;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: #5a4a3a;
+      box-shadow: 0 3px 0 #b8956a, 0 4px 10px rgba(0,0,0,0.12);
+      cursor: pointer;
+      gap: 1px;
+      transition: transform 0.1s;
+    }
+
+    .icon-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #b8956a;
+    }
+
+    .icon-btn .emoji { font-size: 1.4rem; line-height: 1; }
+
+    /* ========== Level badge ========== */
+    .level-badge {
+      position: absolute;
+      bottom: 38%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      background: rgba(255, 252, 245, 0.9);
+      border: 2px solid #d4c4a8;
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #5a4a3a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      pointer-events: none;
+      opacity: 0.95;
+    }
+
+    /* ========== Panels ========== */
+    .panel-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(40, 30, 20, 0.35);
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+
+    .panel-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-height: 78%;
+      background: #fdf8f0;
+      border-radius: 28px 28px 0 0;
+      z-index: 50;
+      transform: translateY(105%);
+      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel.open {
+      transform: translateY(0);
+    }
+
+    .panel-header {
+      padding: 16px 20px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid #eee0d0;
+      flex-shrink: 0;
+    }
+
+    .panel-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #4a3f35;
+    }
+
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #f0e6d8;
+      font-size: 1.2rem;
+      color: #8a7b6d;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px 40px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      background: #f0e6d8;
+      padding: 4px;
+      border-radius: 14px;
+    }
+
+    .tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 9px 6px;
+      border-radius: 11px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #8a7b6d;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: #fff;
+      color: #5a4a3a;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .goal-card {
+      background: #fff;
+      border: 1.5px solid #eee0d0;
+      border-radius: 16px;
+      padding: 13px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .goal-card.done { opacity: 0.62; }
+    .goal-card.done .goal-title {
+      text-decoration: line-through;
+      color: #9a8b7e;
+    }
+
+    .check {
+      width: 28px;
+      height: 28px;
+      border: 2.5px solid #d4c4a8;
+      border-radius: 9px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: white;
+      transition: all 0.15s;
+    }
+
+    .check.checked {
+      background: #7ec8a3;
+      border-color: #5aaf88;
+    }
+
+    .goal-info { flex: 1; min-width: 0; }
+
+    .goal-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+      word-break: break-word;
+    }
+
+    .goal-meta {
+      font-size: 0.75rem;
+      color: #9a8b7e;
+    }
+
+    .goal-actions { display: flex; gap: 4px; }
+
+    .mini-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: #f5ebe0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .form-row { margin-bottom: 14px; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: #8a7b6d;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1.5px solid #e0d4c4;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: #fff;
+      color: #4a3f35;
+      outline: none;
+    }
+
+    input:focus { border-color: #c4a882; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn {
+      flex: 1;
+      border: none;
+      padding: 13px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #f0c14a, #e0a830);
+      color: #4a3a00;
+      border: 2px solid #d4a020;
+    }
+
+    .btn-secondary {
+      background: #f0e6d8;
+      color: #5a4a3a;
+    }
+
+    .btn-green {
+      background: linear-gradient(180deg, #8fd4b0, #6abf90);
+      color: #1a3a2a;
+      border: 2px solid #5aaf88;
+    }
+
+    .reward-card {
+      background: #fff;
+      border: 1.5px solid #eee0d0;
+      border-radius: 16px;
+      padding: 13px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .reward-cost {
+      font-weight: 700;
+      color: #d48a20;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+
+    .toast {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: rgba(60, 48, 36, 0.92);
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.28s;
+      z-index: 100;
+      max-width: 88%;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 36px 16px;
+      color: #9a8b7e;
+      font-size: 0.95rem;
+    }
+
+    .empty .emoji { font-size: 2.4rem; margin-bottom: 8px; }
+
+    .levelup-flash {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 55%, rgba(255, 220, 120, 0.35), transparent 65%);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 30;
+      transition: opacity 0.4s;
+    }
+
+    .levelup-flash.show { opacity: 1; }
+
+    .menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1.5px solid #eee0d0;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .menu-item .emoji { font-size: 1.3rem; }
+
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .bottom-left, .bottom-right {
+        bottom: calc(18px + env(safe-area-inset-bottom));
+      }
+      .panel-body {
+        padding-bottom: calc(40px + env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <div class="scene"></div>
+    <div class="levelup-flash" id="levelupFlash"></div>
+
+    <div class="top-bar">
+      <div class="currency" id="currencyBar">
+        <span>⭐</span>
+        <span id="xpDisplay">0</span>
+        <span style="margin:0 2px;opacity:0.4">|</span>
+        <span>🪙</span>
+        <span id="coinDisplay">20</span>
+        <div class="plus" onclick="toast('金幣與 XP 靠完成目標獲得喔')">＋</div>
+      </div>
+      <button class="menu-btn" onclick="openPanel('menu')">
+        <span class="icon">☰</span>
+        <span>選單</span>
+      </button>
+    </div>
+
+    <div class="level-badge" id="levelBadge">Lv.1 · 小橘</div>
+
+    <div class="bottom-left">
+      <button class="wood-btn" onclick="openPanel('goals')">
+        📋 目標
+      </button>
+    </div>
+
+    <div class="bottom-right">
+      <button class="icon-btn" onclick="openPanel('shop')">
+        <span class="emoji">🎁</span>
+        <span>商店</span>
+      </button>
+      <button class="icon-btn" onclick="openPanel('stats')">
+        <span class="emoji">🏆</span>
+        <span>成就</span>
+      </button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="panel-overlay" id="overlay" onclick="closeAllPanels()"></div>
+
+    <div class="panel" id="panel-goals">
+      <div class="panel-header">
+        <h2>目標清單</h2>
+        <button class="close-btn" onclick="closeAllPanels()">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="tabs">
+          <button class="tab active" data-period="daily" onclick="switchPeriod(this)">每日</button>
+          <button class="tab" data-period="weekly" onclick="switchPeriod(this)">每週</button>
+          <button class="tab" data-period="monthly" onclick="switchPeriod(this)">每月</button>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn btn-primary" style="flex:none;padding:8px 16px;font-size:0.88rem" onclick="openAdd()">＋ 新增目標</button>
+        </div>
+        <div id="goalList"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-shop">
+      <div class="panel-header">
+        <h2>獎勵商店</h2>
+        <button class="close-btn" onclick="closeAllPanels()">×</button>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:0.85rem;color:#8a7b6d;margin-bottom:14px">用金幣兌換你自己設定的獎勵，給自己一點甜頭 ✨</p>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn btn-green" style="flex:none;padding:8px 16px;font-size:0.88rem" onclick="openRewardForm()">＋ 自訂獎勵</button>
+        </div>
+        <div id="rewardList"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-stats">
+      <div class="panel-header">
+        <h2>成就與進度</h2>
+        <button class="close-btn" onclick="closeAllPanels()">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="goal-card" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div style="font-weight:700;font-size:1.05rem">目前等級</div>
+          <div style="font-size:1.8rem;font-weight:700;color:#d48a20">Lv. <span id="statLevel">1</span></div>
+          <div style="font-size:0.85rem;color:#8a7b6d">XP <span id="statXp">0</span> / <span id="statNext">100</span></div>
+        </div>
+        <div class="goal-card" style="margin-top:10px">
+          <div class="goal-info">
+            <div class="goal-title">累積完成目標</div>
+            <div class="goal-meta" id="statCompleted">0 次</div>
+          </div>
+        </div>
+        <div class="goal-card">
+          <div class="goal-info">
+            <div class="goal-title">目前金幣</div>
+            <div class="goal-meta" id="statCoins">0</div>
+          </div>
+        </div>
+        <p style="margin-top:20px;font-size:0.85rem;color:#9a8b7e;text-align:center;line-height:1.6">
+          溫柔地完成每一天的小目標，<br>小貓會一直陪著你 🐱
+        </p>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-menu">
+      <div class="panel-header">
+        <h2>選單</h2>
+        <button class="close-btn" onclick="closeAllPanels()">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="menu-list">
+          <div class="menu-item" onclick="openNameEdit()">
+            <span class="emoji">✏️</span> 修改小貓名字
+          </div>
+          <div class="menu-item" onclick="exportData()">
+            <span class="emoji">💾</span> 匯出資料備份
+          </div>
+          <div class="menu-item" onclick="importData()">
+            <span class="emoji">📂</span> 匯入資料
+          </div>
+          <div class="menu-item" onclick="resetAll()" style="color:#c45c5c">
+            <span class="emoji">🗑</span> 重置所有資料
+          </div>
+        </div>
+        <p style="margin-top:28px;font-size:0.8rem;color:#9a8b7e;text-align:center;line-height:1.5">
+          習慣小貓 · Habit Cat<br>
+          靈感來自《旅行青蛙》
+        </p>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-add" style="max-height:70%">
+      <div class="panel-header">
+        <h2 id="addTitle">新增目標</h2>
+        <button class="close-btn" onclick="closePanel('add')">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="form-row">
+          <label>目標名稱</label>
+          <input id="goalTitle" placeholder="例如：早起喝一杯水" maxlength="60" />
+        </div>
+        <div class="form-row">
+          <label>完成獎勵 XP</label>
+          <input id="goalXp" type="number" min="5" max="500" value="20" />
+        </div>
+        <div class="form-row">
+          <label>完成獎勵金幣</label>
+          <input id="goalCoin" type="number" min="1" max="200" value="5" />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="closePanel('add')">取消</button>
+          <button class="btn btn-primary" onclick="saveGoal()">儲存</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-reward" style="max-height:60%">
+      <div class="panel-header">
+        <h2>新增自訂獎勵</h2>
+        <button class="close-btn" onclick="closePanel('reward')">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="form-row">
+          <label>獎勵內容</label>
+          <input id="rewardTitle" placeholder="例如：看一集喜歡的劇" maxlength="50" />
+        </div>
+        <div class="form-row">
+          <label>需要金幣</label>
+          <input id="rewardCost" type="number" min="5" max="9999" value="30" />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="closePanel('reward')">取消</button>
+          <button class="btn btn-green" onclick="saveReward()">加入商店</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-name" style="max-height:45%">
+      <div class="panel-header">
+        <h2>修改小貓名字</h2>
+        <button class="close-btn" onclick="closePanel('name')">×</button>
+      </div>
+      <div class="panel-body">
+        <div class="form-row">
+          <label>名字</label>
+          <input id="settingName" maxlength="12" />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="closePanel('name')">取消</button>
+          <button class="btn btn-primary" onclick="saveName()">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "habit-cat-v2";
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+    function todayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    }
+    function weekKey() {
+      const d = new Date();
+      const onejan = new Date(d.getFullYear(), 0, 1);
+      const week = Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+      return `${d.getFullYear()}-W${week}`;
+    }
+    function monthKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth()+1}`;
+    }
+
+    const defaultState = () => ({
+      catName: "小橘",
+      level: 1,
+      xp: 0,
+      coins: 20,
+      completedCount: 0,
+      goals: {
+        daily: [
+          { id: uid(), title: "早起喝一杯水", xp: 15, coin: 3, done: false },
+          { id: uid(), title: "運動 20 分鐘", xp: 25, coin: 6, done: false }
+        ],
+        weekly: [
+          { id: uid(), title: "完成一次深度工作", xp: 80, coin: 20, done: false }
+        ],
+        monthly: [
+          { id: uid(), title: "讀完一本書", xp: 200, coin: 50, done: false }
+        ]
+      },
+      rewards: [
+        { id: uid(), title: "享受一杯喜歡的飲料", cost: 25 },
+        { id: uid(), title: "看一集心愛的劇", cost: 40 }
+      ],
+      lastDailyReset: todayKey(),
+      lastWeeklyReset: weekKey(),
+      lastMonthlyReset: monthKey()
+    });
+
+    let state = load();
+    let currentPeriod = "daily";
+    let editingId = null;
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultState();
+        return { ...defaultState(), ...JSON.parse(raw) };
+      } catch { return defaultState(); }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function xpForLevel(lv) {
+      return Math.floor(80 + (lv - 1) * 40 + Math.pow(lv - 1, 1.4) * 8);
+    }
+
+    function addXp(amount) {
+      state.xp += amount;
+      let leveled = false;
+      while (state.xp >= xpForLevel(state.level)) {
+        state.xp -= xpForLevel(state.level);
+        state.level += 1;
+        leveled = true;
+      }
+      if (leveled) {
+        celebrateLevelUp();
+        toast(`🎉 升級！現在是 Lv.${state.level}`);
+      }
+      save();
+      renderTop();
+    }
+
+    function celebrateLevelUp() {
+      const flash = document.getElementById("levelupFlash");
+      flash.classList.add("show");
+      setTimeout(() => flash.classList.remove("show"), 900);
+    }
+
+    function checkResets() {
+      const t = todayKey(), w = weekKey(), m = monthKey();
+      if (state.lastDailyReset !== t) {
+        state.goals.daily.forEach(g => g.done = false);
+        state.lastDailyReset = t;
+      }
+      if (state.lastWeeklyReset !== w) {
+        state.goals.weekly.forEach(g => g.done = false);
+        state.lastWeeklyReset = w;
+      }
+      if (state.lastMonthlyReset !== m) {
+        state.goals.monthly.forEach(g => g.done = false);
+        state.lastMonthlyReset = m;
+      }
+      save();
+    }
+
+    function renderTop() {
+      document.getElementById("xpDisplay").textContent = state.xp;
+      document.getElementById("coinDisplay").textContent = state.coins;
+      document.getElementById("levelBadge").textContent = `Lv.${state.level} · ${state.catName}`;
+      document.getElementById("statLevel").textContent = state.level;
+      document.getElementById("statXp").textContent = state.xp;
+      document.getElementById("statNext").textContent = xpForLevel(state.level);
+      document.getElementById("statCompleted").textContent = (state.completedCount || 0) + " 次";
+      document.getElementById("statCoins").textContent = state.coins + " 🪙";
+      document.getElementById("settingName").value = state.catName;
+    }
+
+    function renderGoals() {
+      const list = document.getElementById("goalList");
+      const goals = state.goals[currentPeriod] || [];
+      if (!goals.length) {
+        list.innerHTML = `<div class="empty"><div class="emoji">🌿</div>還沒有目標，點上方新增吧</div>`;
+        return;
+      }
+      list.innerHTML = goals.map(g => `
+        <div class="goal-card ${g.done ? "done" : ""}">
+          <div class="check ${g.done ? "checked" : ""}" onclick="toggleGoal('${g.id}')">${g.done ? "✓" : ""}</div>
+          <div class="goal-info">
+            <div class="goal-title">${escapeHtml(g.title)}</div>
+            <div class="goal-meta">+${g.xp} XP · +${g.coin} 🪙</div>
+          </div>
+          <div class="goal-actions">
+            <button class="mini-btn" onclick="editGoal('${g.id}')">✏️</button>
+            <button class="mini-btn" onclick="deleteGoal('${g.id}')">🗑</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderShop() {
+      const list = document.getElementById("rewardList");
+      if (!state.rewards.length) {
+        list.innerHTML = `<div class="empty"><div class="emoji">🎁</div>還沒有自訂獎勵</div>`;
+        return;
+      }
+      list.innerHTML = state.rewards.map(r => `
+        <div class="reward-card">
+          <div class="goal-info">
+            <div class="goal-title">${escapeHtml(r.title)}</div>
+            <div class="goal-meta">自訂獎勵</div>
+          </div>
+          <div class="reward-cost">🪙 ${r.cost}</div>
+          <button class="btn btn-green" style="flex:none;padding:8px 12px;font-size:0.85rem"
+            onclick="buyReward('${r.id}')" ${state.coins < r.cost ? "disabled style='opacity:0.5'" : ""}>
+            兌換
+          </button>
+          <button class="mini-btn" onclick="deleteReward('${r.id}')">🗑</button>
+        </div>
+      `).join("");
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g,"&").replace(/</g,"<").replace(/>/g,">").replace(/"/g,""");
+    }
+
+    function toggleGoal(id) {
+      const g = state.goals[currentPeriod].find(x => x.id === id);
+      if (!g) return;
+      if (g.done) {
+        g.done = false;
+        toast("已取消完成狀態");
+      } else {
+        g.done = true;
+        state.coins += g.coin;
+        state.completedCount = (state.completedCount || 0) + 1;
+        addXp(g.xp);
+        toast(`完成！+${g.xp} XP · +${g.coin} 金幣 🐱`);
+      }
+      save();
+      renderTop();
+      renderGoals();
+    }
+
+    function openAdd() {
+      editingId = null;
+      document.getElementById("addTitle").textContent = "新增目標";
+      document.getElementById("goalTitle").value = "";
+      document.getElementById("goalXp").value = currentPeriod === "daily" ? 20 : currentPeriod === "weekly" ? 60 : 150;
+      document.getElementById("goalCoin").value = currentPeriod === "daily" ? 5 : currentPeriod === "weekly" ? 15 : 40;
+      openPanel("add");
+      setTimeout(() => document.getElementById("goalTitle").focus(), 320);
+    }
+
+    function editGoal(id) {
+      const g = state.goals[currentPeriod].find(x => x.id === id);
+      if (!g) return;
+      editingId = id;
+      document.getElementById("addTitle").textContent = "編輯目標";
+      document.getElementById("goalTitle").value = g.title;
+      document.getElementById("goalXp").value = g.xp;
+      document.getElementById("goalCoin").value = g.coin;
+      openPanel("add");
+    }
+
+    function saveGoal() {
+      const title = document.getElementById("goalTitle").value.trim();
+      const xp = Math.max(5, parseInt(document.getElementById("goalXp").value) || 20);
+      const coin = Math.max(1, parseInt(document.getElementById("goalCoin").value) || 5);
+      if (!title) { toast("請輸入目標名稱"); return; }
+      if (editingId) {
+        const g = state.goals[currentPeriod].find(x => x.id === editingId);
+        if (g) { g.title = title; g.xp = xp; g.coin = coin; }
+      } else {
+        state.goals[currentPeriod].push({ id: uid(), title, xp, coin, done: false });
+      }
+      save();
+      closePanel("add");
+      renderGoals();
+      toast(editingId ? "已更新" : "目標已新增 ✨");
+    }
+
+    function deleteGoal(id) {
+      if (!confirm("確定刪除這個目標？")) return;
+      state.goals[currentPeriod] = state.goals[currentPeriod].filter(g => g.id !== id);
+      save();
+      renderGoals();
+      toast("已刪除");
+    }
+
+    function openRewardForm() {
+      document.getElementById("rewardTitle").value = "";
+      document.getElementById("rewardCost").value = 30;
+      openPanel("reward");
+      setTimeout(() => document.getElementById("rewardTitle").focus(), 320);
+    }
+
+    function saveReward() {
+      const title = document.getElementById("rewardTitle").value.trim();
+      const cost = Math.max(5, parseInt(document.getElementById("rewardCost").value) || 30);
+      if (!title) { toast("請輸入獎勵內容"); return; }
+      state.rewards.push({ id: uid(), title, cost });
+      save();
+      closePanel("reward");
+      renderShop();
+      toast("獎勵已加入商店 🎁");
+    }
+
+    function buyReward(id) {
+      const r = state.rewards.find(x => x.id === id);
+      if (!r) return;
+      if (state.coins < r.cost) { toast("金幣不夠喔 😿"); return; }
+      if (!confirm(`確定用 ${r.cost} 金幣兌換「${r.title}」？`)) return;
+      state.coins -= r.cost;
+      save();
+      renderTop();
+      renderShop();
+      toast(`已兌換：${r.title} 🎉`);
+    }
+
+    function deleteReward(id) {
+      if (!confirm("確定刪除這個獎勵？")) return;
+      state.rewards = state.rewards.filter(r => r.id !== id);
+      save();
+      renderShop();
+    }
+
+    function openNameEdit() {
+      closeAllPanels();
+      setTimeout(() => openPanel("name"), 280);
+    }
+
+    function saveName() {
+      const name = document.getElementById("settingName").value.trim() || "小橘";
+      state.catName = name.slice(0, 12);
+      save();
+      renderTop();
+      closePanel("name");
+      toast("名字已更新");
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `habit-cat-backup-${todayKey()}.json`;
+      a.click();
+      toast("已匯出備份");
+    }
+
+    function importData() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json";
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(reader.result);
+            if (!data.goals || !data.catName) throw new Error();
+            state = { ...defaultState(), ...data };
+            save();
+            renderTop();
+            toast("匯入成功！");
+            closeAllPanels();
+          } catch { toast("匯入失敗"); }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function resetAll() {
+      if (!confirm("確定要重置所有資料？此操作無法復原。")) return;
+      if (!confirm("真的確定？小貓會回到最初狀態。")) return;
+      state = defaultState();
+      save();
+      renderTop();
+      closeAllPanels();
+      toast("已重置");
+    }
+
+    function openPanel(name) {
+      document.getElementById("overlay").classList.add("open");
+      document.getElementById("panel-" + name).classList.add("open");
+      if (name === "goals") renderGoals();
+      if (name === "shop") renderShop();
+      if (name === "stats") renderTop();
+    }
+
+    function closePanel(name) {
+      document.getElementById("panel-" + name).classList.remove("open");
+      const anyOpen = ["goals","shop","stats","menu","add","reward","name"].some(n =>
+        document.getElementById("panel-" + n).classList.contains("open")
+      );
+      if (!anyOpen) document.getElementById("overlay").classList.remove("open");
+    }
+
+    function closeAllPanels() {
+      ["goals","shop","stats","menu","add","reward","name"].forEach(n => {
+        document.getElementById("panel-" + n).classList.remove("open");
+      });
+      document.getElementById("overlay").classList.remove("open");
+    }
+
+    function switchPeriod(btn) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      currentPeriod = btn.dataset.period;
+      renderGoals();
+    }
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(el._tid);
+      el._tid = setTimeout(() => el.classList.remove("show"), 2400);
+    }
+
+    checkResets();
+    renderTop();
+  </script>
+</body>
+</html>
