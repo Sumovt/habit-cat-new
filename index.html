@@ -204,7 +204,6 @@
   </div>
 
   <script>
-    // ========== Firebase Config (real) ==========
     const firebaseConfig = {
       apiKey: "AIzaSyBqmgXcSNsFEuNeL4EyzLEZaeYlVO90aDY",
       authDomain: "habit-cat.firebaseapp.com",
@@ -406,7 +405,11 @@
         return '<div class="ach-card ' + (done ? "unlocked" : "") + '"><div class="ach-icon">' + (a.icon || "🏅") + '</div><div class="goal-info"><div class="goal-title">' + escapeHtml(a.title) + (done ? " ✓" : "") + '</div><div class="goal-meta">' + count + " / " + a.target + " 次" + (done ? "（已解鎖）" : "") + '</div><div style="height:6px;background:#f0e6d8;border-radius:99px;margin-top:6px;overflow:hidden"><div style="height:100%;width:' + progress + '%;background:' + (done ? "#7ec8a3" : "#f0c14a") + ';border-radius:99px"></div></div></div>' + (a.custom ? '<button class="mini-btn" onclick="deleteAch(\'' + a.id + '\')">🗑</button>' : "") + '</div>';
       }).join("");
     }
-    function escapeHtml(str) { return String(str).replace(/&/g,"&").replace(/</g,"<").replace(/>/g,">").replace(/"/g,"""); }
+    function escapeHtml(str) {
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
     function renderAll() { renderTop(); renderGoals(); renderShop(); renderAchievements(); }
 
     function toggleGoal(id) {
