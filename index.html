@@ -51,22 +51,22 @@
     }
     .friend-cat {
       position: absolute;
-      bottom: 31%;
-      right: 5%;
+      bottom: 28%;
+      left: 8%;
+      right: auto;
       z-index: 12;
-      width: 32%;
-      max-width: 150px;
+      width: 30%;
+      max-width: 145px;
       pointer-events: none;
-      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.18));
-      animation: catBob 3.5s ease-in-out infinite;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.12));
     }
-    .friend-cat img { width: 100%; height: auto; display: block; }
-    @keyframes catBob {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
+    .friend-cat img {
+      width: 100%;
+      height: auto;
+      display: block;
     }
     @media (max-width: 380px) {
-      .friend-cat { width: 36%; right: 4%; bottom: 28%; }
+      .friend-cat { width: 34%; left: 4%; right: auto; bottom: 26%; }
       .level-badge { bottom: 24%; left: 66%; font-size: 0.72rem; }
     }
     .panel-overlay { position: absolute; inset: 0; background: rgba(40,30,20,0.35); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
