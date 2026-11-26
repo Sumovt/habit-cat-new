@@ -9,7 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <style>
-:root{--wood:#e8d5b7;--wood-dark:#c4a882;--ink:#4a3f35;--muted:#8a7b6d;--cream:#fdf6ee;--accent:#7ec8a3;--coin:#e8a04a;--xp:#f0c14a}
+:root{--wood:#e8d5b7;--wood-dark:#c4a882;--ink:#4a3f35;--muted:#8a7b6d}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;font-family:"Noto Sans TC",system-ui,sans-serif;background:#2a2520;color:var(--ink);-webkit-tap-highlight-color:transparent;user-select:none}
 .game{position:relative;width:100%;max-width:480px;height:100dvh;margin:0 auto;overflow:hidden;background:#f5ebe0}
@@ -25,12 +25,15 @@ html,body{height:100%;overflow:hidden;font-family:"Noto Sans TC",system-ui,sans-
 .user-chip.show{display:block}
 .bottom-left{position:absolute;bottom:18px;left:14px;z-index:20}
 .bottom-right{position:absolute;bottom:18px;right:14px;z-index:20;display:flex;flex-direction:column;gap:10px}
-.wood-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(180deg,#f5e6d0 0%,#e8d4b5 100%);border:2.5px solid #c4a882;border-radius:16px;padding:10px 16px;font-weight:700;font-size:.95rem;color:#5a4a3a;box-shadow:0 3px 0 #b8956a,0 4px 10px rgba(0,0,0,.12);cursor:pointer;min-width:110px;transition:transform .1s}
-.wood-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #b8956a,0 2px 6px rgba(0,0,0,.1)}
-.icon-btn{width:56px;height:56px;background:linear-gradient(180deg,#f5e6d0 0%,#e8d4b5 100%);border:2.5px solid #c4a882;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;color:#5a4a3a;box-shadow:0 3px 0 #b8956a,0 4px 10px rgba(0,0,0,.12);cursor:pointer;gap:1px;transition:transform .1s}
+.wood-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(180deg,#f5e6d0,#e8d4b5);border:2.5px solid #c4a882;border-radius:16px;padding:10px 16px;font-weight:700;font-size:.95rem;color:#5a4a3a;box-shadow:0 3px 0 #b8956a,0 4px 10px rgba(0,0,0,.12);cursor:pointer;min-width:110px}
+.wood-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #b8956a}
+.icon-btn{width:56px;height:56px;background:linear-gradient(180deg,#f5e6d0,#e8d4b5);border:2.5px solid #c4a882;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;color:#5a4a3a;box-shadow:0 3px 0 #b8956a,0 4px 10px rgba(0,0,0,.12);cursor:pointer;gap:1px}
 .icon-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #b8956a}
 .icon-btn .emoji{font-size:1.4rem;line-height:1}
-.level-badge{position:absolute;bottom:38%;left:50%;transform:translateX(-50%);z-index:15;background:rgba(255,252,245,.9);border:2px solid #d4c4a8;border-radius:999px;padding:4px 14px;font-size:.8rem;font-weight:600;color:#5a4a3a;box-shadow:0 2px 8px rgba(0,0,0,.1);pointer-events:none;opacity:.95}
+.level-badge{position:absolute;bottom:22%;left:50%;transform:translateX(-50%);z-index:15;background:rgba(255,252,245,.55);border:1.5px solid rgba(212,196,168,.65);border-radius:999px;padding:5px 16px;font-size:.8rem;font-weight:600;color:#5a4a3a;box-shadow:0 2px 10px rgba(0,0,0,.08);pointer-events:none;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.friend-cat{position:absolute;bottom:28%;right:12%;z-index:12;font-size:2.6rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15));pointer-events:none;animation:catBob 3.2s ease-in-out infinite}
+@keyframes catBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media (max-width:380px){.friend-cat{font-size:2.2rem;right:8%;bottom:26%}.level-badge{bottom:20%;font-size:.75rem}}
 .panel-overlay{position:absolute;inset:0;background:rgba(40,30,20,.35);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
 .panel-overlay.open{opacity:1;pointer-events:auto}
 .panel{position:absolute;left:0;right:0;bottom:0;max-height:80%;background:#fdf8f0;border-radius:28px 28px 0 0;z-index:50;transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);box-shadow:0 -8px 30px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden}
@@ -45,7 +48,7 @@ html,body{height:100%;overflow:hidden;font-family:"Noto Sans TC",system-ui,sans-
 .goal-card{background:#fff;border:1.5px solid #eee0d0;border-radius:16px;padding:13px 14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.04)}
 .goal-card.done{opacity:.62}
 .goal-card.done .goal-title{text-decoration:line-through;color:#9a8b7e}
-.check{width:28px;height:28px;border:2.5px solid #d4c4a8;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.95rem;color:#fff;transition:all .15s}
+.check{width:28px;height:28px;border:2.5px solid #d4c4a8;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.95rem;color:#fff}
 .check.checked{background:#7ec8a3;border-color:#5aaf88}
 .goal-info{flex:1;min-width:0}
 .goal-title{font-weight:600;font-size:.95rem;margin-bottom:2px;word-break:break-word}
@@ -88,6 +91,7 @@ input:focus,select:focus{border-color:#c4a882}
 <button class="menu-btn" onclick="openPanel('menu')"><span class="icon">☰</span><span>選單</span></button>
 </div>
 <div class="user-chip" id="userChip"></div>
+<div class="friend-cat" id="friendCat" title="同伴小貓">🐱</div>
 <div class="level-badge" id="levelBadge">Lv.1 · 小橘</div>
 <div class="bottom-left"><button class="wood-btn" onclick="openPanel('goals')">📋 目標</button></div>
 <div class="bottom-right">
@@ -104,22 +108,16 @@ input:focus,select:focus{border-color:#c4a882}
 <button class="tab" data-period="weekly" onclick="switchPeriod(this)">每週</button>
 <button class="tab" data-period="monthly" onclick="switchPeriod(this)">每月</button>
 </div>
-<div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-<button class="btn btn-primary" style="flex:none;padding:8px 16px;font-size:.88rem" onclick="openAdd()">＋ 新增目標</button>
-</div>
+<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-primary" style="flex:none;padding:8px 16px;font-size:.88rem" onclick="openAdd()">＋ 新增目標</button></div>
 <div id="goalList"></div>
-</div>
-</div>
+</div></div>
 <div class="panel" id="panel-shop">
 <div class="panel-header"><h2>獎勵商店</h2><button class="close-btn" onclick="closeAllPanels()">×</button></div>
 <div class="panel-body">
 <p style="font-size:.85rem;color:#8a7b6d;margin-bottom:14px">用金幣兌換你自己設定的獎勵 ✨</p>
-<div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-<button class="btn btn-green" style="flex:none;padding:8px 16px;font-size:.88rem" onclick="openRewardForm()">＋ 自訂獎勵</button>
-</div>
+<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-green" style="flex:none;padding:8px 16px;font-size:.88rem" onclick="openRewardForm()">＋ 自訂獎勵</button></div>
 <div id="rewardList"></div>
-</div>
-</div>
+</div></div>
 <div class="panel" id="panel-stats">
 <div class="panel-header"><h2>成就</h2><button class="close-btn" onclick="closeAllPanels()">×</button></div>
 <div class="panel-body">
@@ -132,8 +130,7 @@ input:focus,select:focus{border-color:#c4a882}
 <button class="btn btn-primary" style="flex:none;padding:7px 12px;font-size:.82rem" onclick="openAchForm()">＋ 自訂成就</button>
 </div>
 <div id="achList"></div>
-</div>
-</div>
+</div></div>
 <div class="panel" id="panel-menu">
 <div class="panel-header"><h2>選單</h2><button class="close-btn" onclick="closeAllPanels()">×</button></div>
 <div class="panel-body">
@@ -149,8 +146,7 @@ input:focus,select:focus{border-color:#c4a882}
 <div class="menu-item" onclick="resetAll()" style="color:#c45c5c"><span class="emoji">🗑</span> 重置所有資料</div>
 </div>
 <p style="margin-top:24px;font-size:.8rem;color:#9a8b7e;text-align:center;line-height:1.5">習慣小貓 · Habit Cat<br>靈感來自《旅行青蛙》</p>
-</div>
-</div>
+</div></div>
 <div class="panel" id="panel-add" style="max-height:70%">
 <div class="panel-header"><h2 id="addTitle">新增目標</h2><button class="close-btn" onclick="closePanel('add')">×</button></div>
 <div class="panel-body">
@@ -162,22 +158,22 @@ input:focus,select:focus{border-color:#c4a882}
 <option value="心態 / 冥想">心態 / 冥想</option>
 <option value="創意">創意</option>
 <option value="生活">生活</option>
+<option value="財務">財務</option>
+<option value="戀愛">戀愛</option>
 <option value="自訂">自訂</option>
 </select></div>
 <div class="form-row" id="customCategoryRow" style="display:none"><label>自訂分類名稱</label><input id="goalCategoryCustom" placeholder="例如：理財、社交…" maxlength="20"/></div>
 <div class="form-row"><label>完成獎勵 XP</label><input id="goalXp" type="number" min="5" max="500" value="20"/></div>
 <div class="form-row"><label>完成獎勵金幣</label><input id="goalCoin" type="number" min="1" max="200" value="5"/></div>
 <div class="btn-row"><button class="btn btn-secondary" onclick="closePanel('add')">取消</button><button class="btn btn-primary" onclick="saveGoal()">儲存</button></div>
-</div>
-</div>
+</div></div>
 <div class="panel" id="panel-reward" style="max-height:60%">
 <div class="panel-header"><h2>新增自訂獎勵</h2><button class="close-btn" onclick="closePanel('reward')">×</button></div>
 <div class="panel-body">
 <div class="form-row"><label>獎勵內容</label><input id="rewardTitle" placeholder="例如：看一集喜歡的劇" maxlength="50"/></div>
 <div class="form-row"><label>需要金幣</label><input id="rewardCost" type="number" min="1" max="9999" value="30"/></div>
 <div class="btn-row"><button class="btn btn-secondary" onclick="closePanel('reward')">取消</button><button class="btn btn-green" onclick="saveReward()">加入商店</button></div>
-</div>
-</div>
+</div></div>
 <div class="panel" id="panel-ach" style="max-height:60%">
 <div class="panel-header"><h2>新增自訂成就</h2><button class="close-btn" onclick="closePanel('ach')">×</button></div>
 <div class="panel-body">
@@ -185,20 +181,18 @@ input:focus,select:focus{border-color:#c4a882}
 <div class="form-row"><label>需要完成次數</label><input id="achTarget" type="number" min="1" max="99999" value="30"/></div>
 <div class="form-row"><label>圖示（可選，填 emoji）</label><input id="achIcon" placeholder="🏅" maxlength="4" value="🏅"/></div>
 <div class="btn-row"><button class="btn btn-secondary" onclick="closePanel('ach')">取消</button><button class="btn btn-primary" onclick="saveAch()">新增成就</button></div>
-</div>
-</div>
+</div></div>
 <div class="panel" id="panel-name" style="max-height:45%">
 <div class="panel-header"><h2>修改小貓名字</h2><button class="close-btn" onclick="closePanel('name')">×</button></div>
 <div class="panel-body">
 <div class="form-row"><label>名字</label><input id="settingName" maxlength="12"/></div>
 <div class="btn-row"><button class="btn btn-secondary" onclick="closePanel('name')">取消</button><button class="btn btn-primary" onclick="saveName()">儲存</button></div>
-</div>
-</div>
+</div></div>
 </div>
 <script>
 const firebaseConfig={apiKey:"AIzaSyBqmgXcSNsFEuNeL4EyzLEZaeYlVO90aDY",authDomain:"habit-cat.firebaseapp.com",projectId:"habit-cat",storageBucket:"habit-cat.firebasestorage.app",messagingSenderId:"202345060222",appId:"1:202345060222:web:05eca0716c4faa9c4a852f",measurementId:"G-JFBX6P4V2N"};
 let auth=null,db=null,currentUser=null,firebaseReady=false;
-try{if(firebaseConfig.apiKey!=="YOUR_API_KEY"){firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();firebaseReady=true;}}catch(e){console.warn("Firebase init failed",e);}
+try{if(firebaseConfig.apiKey!=="YOUR_API_KEY"){firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();firebaseReady=true;}}catch(e){console.warn(e);}
 const DEFAULT_ACHIEVEMENTS=[{id:"a10",title:"初次累積",target:10,icon:"🌱",custom:false},{id:"a50",title:"小有成績",target:50,icon:"🌿",custom:false},{id:"a100",title:"百次達人",target:100,icon:"🌳",custom:false},{id:"a300",title:"習慣養成中",target:300,icon:"🏅",custom:false},{id:"a500",title:"半千勇士",target:500,icon:"🥇",custom:false},{id:"a1000",title:"千次傳說",target:1000,icon:"👑",custom:false}];
 const STORAGE_KEY="habit-cat-v3";
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
@@ -212,7 +206,7 @@ function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
 async function saveCloud(){if(!firebaseReady||!currentUser||!db)return;try{await db.collection("users").doc(currentUser.uid).set(Object.assign({},state,{updatedAt:firebase.firestore.FieldValue.serverTimestamp(),email:currentUser.email||""}),{merge:true});}catch(e){console.error(e);toast("雲端儲存失敗，已存本地");}}
 async function loadCloud(){if(!firebaseReady||!currentUser||!db)return false;try{const doc=await db.collection("users").doc(currentUser.uid).get();if(doc.exists){state=Object.assign(defaultState(),doc.data());if(!state.achievements)state.achievements=JSON.parse(JSON.stringify(DEFAULT_ACHIEVEMENTS));saveLocal();return true;}else{await saveCloud();return true;}}catch(e){console.error(e);return false;}}
 function save(){saveLocal();if(currentUser)saveCloud();}
-function loginWithGoogle(){if(!firebaseReady){toast("請先在程式碼設定 Firebase（見 README）");return;}const provider=new firebase.auth.GoogleAuthProvider();auth.signInWithPopup(provider).catch(err=>{console.error(err);toast("登入失敗："+(err.message||"請重試"));});}
+function loginWithGoogle(){if(!firebaseReady){toast("請先設定 Firebase");return;}const provider=new firebase.auth.GoogleAuthProvider();auth.signInWithPopup(provider).catch(err=>{console.error(err);toast("登入失敗："+(err.message||"請重試"));});}
 function logout(){if(!auth)return;auth.signOut().then(()=>{currentUser=null;updateAuthUI();toast("已登出（本地資料仍保留）");});}
 function updateAuthUI(){const chip=document.getElementById("userChip");const btnLogin=document.getElementById("btnLogin");const btnLogout=document.getElementById("btnLogout");const note=document.getElementById("syncNote");if(currentUser){chip.textContent="👤 "+(currentUser.displayName||currentUser.email||"已登入");chip.classList.add("show");btnLogin.style.display="none";btnLogout.style.display="block";note.textContent="資料已同步到你的帳號，換裝置也能繼續。";}else{chip.classList.remove("show");btnLogin.style.display="block";btnLogout.style.display="none";note.textContent="登入後，資料會同步到你的帳號，換手機也能繼續玩。";}}
 if(firebaseReady&&auth){auth.onAuthStateChanged(async(user)=>{currentUser=user;updateAuthUI();if(user){toast("登入成功，正在同步資料…");const ok=await loadCloud();if(ok){checkResets();renderAll();toast("資料已同步 ✨");}}});}
@@ -228,7 +222,7 @@ function escapeHtml(str){const d=document.createElement("div");d.textContent=str
 function renderAll(){renderTop();renderGoals();renderShop();renderAchievements();}
 function toggleGoal(id){const g=state.goals[currentPeriod].find(x=>x.id===id);if(!g)return;if(g.done){g.done=false;toast("已取消完成狀態");}else{g.done=true;state.coins+=g.coin;state.completedCount=(state.completedCount||0)+1;addXp(g.xp);toast("完成！+"+g.xp+" XP · +"+g.coin+" 金幣 🐱");}save();renderAll();}
 function openAdd(){editingId=null;document.getElementById("addTitle").textContent="新增目標";document.getElementById("goalTitle").value="";document.getElementById("goalCategory").value="生活";document.getElementById("goalCategoryCustom").value="";document.getElementById("customCategoryRow").style.display="none";document.getElementById("goalXp").value=currentPeriod==="daily"?20:currentPeriod==="weekly"?60:150;document.getElementById("goalCoin").value=currentPeriod==="daily"?5:currentPeriod==="weekly"?15:40;openPanel("add");setTimeout(()=>document.getElementById("goalTitle").focus(),300);}
-function editGoal(id){const g=state.goals[currentPeriod].find(x=>x.id===id);if(!g)return;editingId=id;document.getElementById("addTitle").textContent="編輯目標";document.getElementById("goalTitle").value=g.title;const cat=g.category||"生活";const presets=["健康 / 運動","學習","心態 / 冥想","創意","生活","自訂"];if(presets.indexOf(cat)!==-1){document.getElementById("goalCategory").value=cat;document.getElementById("goalCategoryCustom").value="";document.getElementById("customCategoryRow").style.display=cat==="自訂"?"block":"none";}else{document.getElementById("goalCategory").value="自訂";document.getElementById("goalCategoryCustom").value=cat;document.getElementById("customCategoryRow").style.display="block";}document.getElementById("goalXp").value=g.xp;document.getElementById("goalCoin").value=g.coin;openPanel("add");}
+function editGoal(id){const g=state.goals[currentPeriod].find(x=>x.id===id);if(!g)return;editingId=id;document.getElementById("addTitle").textContent="編輯目標";document.getElementById("goalTitle").value=g.title;const cat=g.category||"生活";const presets=["健康 / 運動","學習","心態 / 冥想","創意","生活","財務","戀愛","自訂"];if(presets.indexOf(cat)!==-1){document.getElementById("goalCategory").value=cat;document.getElementById("goalCategoryCustom").value="";document.getElementById("customCategoryRow").style.display=cat==="自訂"?"block":"none";}else{document.getElementById("goalCategory").value="自訂";document.getElementById("goalCategoryCustom").value=cat;document.getElementById("customCategoryRow").style.display="block";}document.getElementById("goalXp").value=g.xp;document.getElementById("goalCoin").value=g.coin;openPanel("add");}
 function onCategoryChange(){const isCustom=document.getElementById("goalCategory").value==="自訂";document.getElementById("customCategoryRow").style.display=isCustom?"block":"none";}
 function getSelectedCategory(){const sel=document.getElementById("goalCategory").value;if(sel==="自訂"){const custom=document.getElementById("goalCategoryCustom").value.trim();return custom||"自訂";}return sel;}
 function saveGoal(){const title=document.getElementById("goalTitle").value.trim();const xp=Math.max(5,parseInt(document.getElementById("goalXp").value)||20);const coin=Math.max(1,parseInt(document.getElementById("goalCoin").value)||5);const category=getSelectedCategory();if(!title){toast("請輸入目標名稱");return;}if(editingId){const g=state.goals[currentPeriod].find(x=>x.id===editingId);if(g){g.title=title;g.xp=xp;g.coin=coin;g.category=category;}}else{state.goals[currentPeriod].push({id:uid(),title:title,xp:xp,coin:coin,done:false,category:category});}save();closePanel("add");renderGoals();toast(editingId?"已更新":"目標已新增 ✨");}
