@@ -56,9 +56,7 @@
     .game:has(.user-chip.show) .level-badge {
       top: 118px;
     }
-    .friend-cat { position: absolute; bottom: 26%; left: 28%; right: auto; z-index: 12; width: 18%; max-width: 88px; pointer-events: none; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.12)); }
-    .friend-cat img { width: 100%; height: auto; display: block; background: transparent; }
-    @media (max-width: 380px) { .friend-cat { width: 22%; left: 24%; right: auto; bottom: 24%; } .level-badge { font-size: 0.72rem; } }
+    @media (max-width: 380px) { .level-badge { font-size: 0.72rem; } }
     .panel-overlay { position: absolute; inset: 0; background: rgba(40,30,20,0.35); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
     .panel-overlay.open { opacity: 1; pointer-events: auto; }
     .panel { position: absolute; left: 0; right: 0; bottom: 0; max-height: 80%; background: #fdf8f0; border-radius: 28px 28px 0 0; z-index: 50; transform: translateY(105%); transition: transform 0.32s cubic-bezier(0.32,0.72,0,1); box-shadow: 0 -8px 30px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; }
@@ -144,7 +142,6 @@
       <button class="menu-btn" onclick="openPanel('menu')"><span class="icon">☰</span><span>選單</span></button>
     </div>
     <div class="user-chip" id="userChip"></div>
-    <div class="friend-cat" id="friendCat" title="白色同伴小貓"><img src="friend-cat.png" alt="白色小貓" draggable="false"/></div>
     <div class="level-badge" id="levelBadge">Lv.1 · 小橘</div>
     <div class="bottom-left"><button class="wood-btn" onclick="openPanel('goals')">📋 目標</button></div>
     <div class="bottom-right">
@@ -266,6 +263,6 @@
       </div>
     </div>
   </div>
-  <script src="app.js?v=20261126d"></script>
+  <script src="app.js?v=20261126e"></script>
 </body>
 </html>
