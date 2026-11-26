@@ -1,1 +1,246 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>習慣小貓 · Habit Cat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <style>
+    :root { --wood: #e8d5b7; --wood-dark: #c4a882; --ink: #4a3f35; --muted: #8a7b6d; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: "Noto Sans TC", system-ui, sans-serif; background: #2a2520; color: var(--ink); -webkit-tap-highlight-color: transparent; user-select: none; }
+    .game { position: relative; width: 100%; max-width: 480px; height: 100dvh; margin: 0 auto; overflow: hidden; background: #f5ebe0; }
+    .scene { position: absolute; inset: 0; background: url("home-bg.jpg") center / cover no-repeat; z-index: 1; }
+    .scene::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.04) 0%, transparent 18%, transparent 75%, rgba(0,0,0,0.12) 100%); pointer-events: none; }
+    .top-bar { position: absolute; top: 12px; left: 12px; right: 12px; z-index: 20; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+    .top-bar > * { pointer-events: auto; }
+    .currency { display: flex; align-items: center; gap: 4px; background: rgba(255,252,245,0.92); border: 2px solid #d4c4a8; border-radius: 999px; padding: 5px 10px 5px 8px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); color: #5a4a3a; }
+    .currency .plus { width: 22px; height: 22px; background: #f0c14a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #5a4a00; margin-left: 2px; border: 1.5px solid #d4a830; }
+    .menu-btn { width: 48px; height: 48px; background: rgba(255,252,245,0.92); border: 2px solid #d4c4a8; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; color: #6a5a4a; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; gap: 1px; }
+    .menu-btn .icon { font-size: 1.1rem; line-height: 1; }
+    .user-chip { position: absolute; top: 68px; left: 12px; z-index: 20; background: rgba(255,252,245,0.92); border: 2px solid #d4c4a8; border-radius: 999px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; color: #5a4a3a; display: none; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-chip.show { display: block; }
+    .bottom-left { position: absolute; bottom: 18px; left: 14px; z-index: 20; }
+    .bottom-right { position: absolute; bottom: 18px; right: 14px; z-index: 20; display: flex; flex-direction: column; gap: 10px; }
+    .wood-btn { display: flex; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(180deg, #f5e6d0 0%, #e8d4b5 100%); border: 2.5px solid #c4a882; border-radius: 16px; padding: 10px 16px; font-weight: 700; font-size: 0.95rem; color: #5a4a3a; box-shadow: 0 3px 0 #b8956a, 0 4px 10px rgba(0,0,0,0.12); cursor: pointer; min-width: 110px; }
+    .wood-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b8956a; }
+    .icon-btn { width: 56px; height: 56px; background: linear-gradient(180deg, #f5e6d0 0%, #e8d4b5 100%); border: 2.5px solid #c4a882; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; color: #5a4a3a; box-shadow: 0 3px 0 #b8956a, 0 4px 10px rgba(0,0,0,0.12); cursor: pointer; gap: 1px; }
+    .icon-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b8956a; }
+    .icon-btn .emoji { font-size: 1.4rem; line-height: 1; }
+    .level-badge { position: absolute; bottom: 26%; left: 68%; transform: translateX(-50%); z-index: 15; background: rgba(255, 252, 245, 0.55); border: 1.5px solid rgba(212, 196, 168, 0.65); border-radius: 999px; padding: 5px 14px; font-size: 0.78rem; font-weight: 600; color: #5a4a3a; box-shadow: 0 2px 10px rgba(0,0,0,0.08); pointer-events: none; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); white-space: nowrap; }
+    .friend-cat { position: absolute; bottom: 26%; left: 28%; right: auto; z-index: 12; width: 18%; max-width: 88px; pointer-events: none; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.12)); }
+    .friend-cat img { width: 100%; height: auto; display: block; background: transparent; }
+    @media (max-width: 380px) { .friend-cat { width: 22%; left: 24%; right: auto; bottom: 24%; } .level-badge { bottom: 24%; left: 66%; font-size: 0.72rem; } }
+    .panel-overlay { position: absolute; inset: 0; background: rgba(40,30,20,0.35); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .panel-overlay.open { opacity: 1; pointer-events: auto; }
+    .panel { position: absolute; left: 0; right: 0; bottom: 0; max-height: 80%; background: #fdf8f0; border-radius: 28px 28px 0 0; z-index: 50; transform: translateY(105%); transition: transform 0.32s cubic-bezier(0.32,0.72,0,1); box-shadow: 0 -8px 30px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; }
+    .panel.open { transform: translateY(0); }
+    .panel-header { padding: 16px 20px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #eee0d0; flex-shrink: 0; }
+    .panel-header h2 { font-size: 1.15rem; font-weight: 700; color: #4a3f35; }
+    .close-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f0e6d8; font-size: 1.2rem; color: #8a7b6d; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 16px 18px 40px; -webkit-overflow-scrolling: touch; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; background: #f0e6d8; padding: 4px; border-radius: 14px; }
+    .tab { flex: 1; border: none; background: transparent; padding: 9px 6px; border-radius: 11px; font-size: 0.88rem; font-weight: 600; color: #8a7b6d; cursor: pointer; }
+    .tab.active { background: #fff; color: #5a4a3a; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .goal-card { background: #fff; border: 1.5px solid #eee0d0; border-radius: 16px; padding: 13px 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .goal-card.done { opacity: 0.62; }
+    .goal-card.done .goal-title { text-decoration: line-through; color: #9a8b7e; }
+    .check { width: 28px; height: 28px; border: 2.5px solid #d4c4a8; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.95rem; color: white; }
+    .check.checked { background: #7ec8a3; border-color: #5aaf88; }
+    .goal-info { flex: 1; min-width: 0; }
+    .goal-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; word-break: break-word; }
+    .goal-meta { font-size: 0.75rem; color: #9a8b7e; }
+    .goal-actions { display: flex; gap: 4px; }
+    .mini-btn { width: 32px; height: 32px; border: none; background: #f5ebe0; border-radius: 10px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
+    .mini-btn:disabled { opacity: 0.3; cursor: default; }
+    .form-row { margin-bottom: 14px; }
+    label { display: block; font-size: 0.8rem; color: #8a7b6d; margin-bottom: 5px; font-weight: 500; }
+    input, select { width: 100%; padding: 11px 13px; border: 1.5px solid #e0d4c4; border-radius: 12px; font-size: 0.95rem; font-family: inherit; background: #fff; color: #4a3f35; outline: none; }
+    input:focus, select:focus { border-color: #c4a882; }
+    .btn-row { display: flex; gap: 10px; margin-top: 8px; }
+    .btn { flex: 1; border: none; padding: 13px; border-radius: 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-primary { background: linear-gradient(180deg, #f0c14a, #e0a830); color: #4a3a00; border: 2px solid #d4a020; }
+    .btn-secondary { background: #f0e6d8; color: #5a4a3a; }
+    .btn-green { background: linear-gradient(180deg, #8fd4b0, #6abf90); color: #1a3a2a; border: 2px solid #5aaf88; }
+    .btn-google { background: #fff; color: #444; border: 1.5px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .reward-card, .ach-card { background: #fff; border: 1.5px solid #eee0d0; border-radius: 16px; padding: 13px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .reward-cost { font-weight: 700; color: #d48a20; white-space: nowrap; font-size: 0.9rem; }
+    .ach-card.unlocked { border-color: #7ec8a3; background: #f0faf5; }
+    .ach-icon { font-size: 1.6rem; width: 40px; text-align: center; }
+    .toast { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(16px); background: rgba(60,48,36,0.92); color: #fff; padding: 11px 20px; border-radius: 999px; font-size: 0.9rem; opacity: 0; pointer-events: none; transition: all 0.28s; z-index: 100; max-width: 88%; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .empty { text-align: center; padding: 36px 16px; color: #9a8b7e; font-size: 0.95rem; }
+    .empty .emoji { font-size: 2.4rem; margin-bottom: 8px; }
+    .levelup-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 55%, rgba(255,220,120,0.35), transparent 65%); pointer-events: none; opacity: 0; z-index: 30; transition: opacity 0.4s; }
+    .levelup-flash.show { opacity: 1; }
+    .menu-list { display: flex; flex-direction: column; gap: 8px; }
+    .menu-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #fff; border: 1.5px solid #eee0d0; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+    .menu-item .emoji { font-size: 1.3rem; }
+    .sync-note { font-size: 0.78rem; color: #9a8b7e; text-align: center; margin-top: 12px; line-height: 1.4; }
+    .stats-tabs { display: flex; gap: 6px; margin-bottom: 14px; background: #f0e6d8; padding: 4px; border-radius: 14px; }
+    .stats-tab { flex: 1; border: none; background: transparent; padding: 9px 6px; border-radius: 11px; font-size: 0.88rem; font-weight: 600; color: #8a7b6d; cursor: pointer; font-family: inherit; }
+    .stats-tab.active { background: #fff; color: #5a4a3a; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .metric-card { background: #fff; border: 1.5px solid #eee0d0; border-radius: 14px; padding: 12px 14px; }
+    .metric-card .label { font-size: 0.75rem; color: #9a8b7e; margin-bottom: 4px; }
+    .metric-card .value { font-size: 1.35rem; font-weight: 700; color: #4a3f35; }
+    .metric-card .sub { font-size: 0.72rem; color: #9a8b7e; margin-top: 2px; }
+    .chart-block { background: #fff; border: 1.5px solid #eee0d0; border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+    .chart-block h3 { font-size: 0.9rem; font-weight: 700; color: #5a4a3a; margin-bottom: 12px; }
+    .month-goal-row { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-bottom: 1px solid #f0e6d8; }
+    .month-goal-row:last-child { border-bottom: none; }
+    .month-goal-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .month-goal-name { font-weight: 600; font-size: 0.9rem; color: #4a3f35; }
+    .month-goal-status { font-size: 0.75rem; color: #9a8b7e; white-space: nowrap; }
+    .month-goal-status.done { color: #5aaf88; font-weight: 600; }
+    .progress-bar { height: 8px; background: #f0e6d8; border-radius: 99px; overflow: hidden; }
+    .progress-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #8fd4b0, #5aaf88); border-radius: 99px; }
+    .progress-bar > i.empty { background: #e8dcc8; width: 0 !important; }
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .bottom-left, .bottom-right { bottom: calc(18px + env(safe-area-inset-bottom)); }
+      .panel-body { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <div class="scene"></div>
+    <div class="levelup-flash" id="levelupFlash"></div>
+    <div class="top-bar">
+      <div class="currency">
+        <span>⭐</span> <span id="xpDisplay">0</span>
+        <span style="margin:0 2px;opacity:0.4">|</span>
+        <span>🪙</span> <span id="coinDisplay">20</span>
+        <div class="plus" onclick="toast('金幣與 XP 靠完成目標獲得喔')">＋</div>
+      </div>
+      <button class="menu-btn" onclick="openPanel('menu')"><span class="icon">☰</span><span>選單</span></button>
+    </div>
+    <div class="user-chip" id="userChip"></div>
+    <div class="friend-cat" id="friendCat" title="白色同伴小貓"><img src="friend-cat.png" alt="白色小貓" draggable="false"/></div>
+    <div class="level-badge" id="levelBadge">Lv.1 · 小橘</div>
+    <div class="bottom-left"><button class="wood-btn" onclick="openPanel('goals')">📋 目標</button></div>
+    <div class="bottom-right">
+      <button class="icon-btn" onclick="openPanel('shop')"><span class="emoji">🎁</span><span>商店</span></button>
+      <button class="icon-btn" onclick="openPanel('stats')"><span class="emoji">🏆</span><span>成就</span></button>
+    </div>
+    <div class="toast" id="toast"></div>
+    <div class="panel-overlay" id="overlay" onclick="closeAllPanels()"></div>
+    <div class="panel" id="panel-goals">
+      <div class="panel-header"><h2>目標清單</h2><button class="close-btn" onclick="closeAllPanels()">×</button></div>
+      <div class="panel-body">
+        <div class="tabs">
+          <button class="tab active" data-period="daily" onclick="switchPeriod(this)">每日</button>
+          <button class="tab" data-period="weekly" onclick="switchPeriod(this)">每週</button>
+          <button class="tab" data-period="monthly" onclick="switchPeriod(this)">每月</button>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn btn-primary" style="flex:none;padding:8px 16px;font-size:0.88rem" onclick="openAdd()">＋ 新增目標</button>
+        </div>
+        <div id="goalList"></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-shop">
+      <div class="panel-header"><h2>獎勵商店</h2><button class="close-btn" onclick="closeAllPanels()">×</button></div>
+      <div class="panel-body">
+        <p style="font-size:0.85rem;color:#8a7b6d;margin-bottom:14px">用金幣兌換你自己設定的獎勵 ✨</p>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn btn-green" style="flex:none;padding:8px 16px;font-size:0.88rem" onclick="openRewardForm()">＋ 自訂獎勵</button>
+        </div>
+        <div id="rewardList"></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-stats">
+      <div class="panel-header"><h2>成就 &amp; 分析</h2><button class="close-btn" onclick="closeAllPanels()">×</button></div>
+      <div class="panel-body">
+        <div class="stats-tabs">
+          <button class="stats-tab active" data-stab="ach" onclick="switchStatsTab(this)">🏆 成就</button>
+          <button class="stats-tab" data-stab="analytics" onclick="switchStatsTab(this)">📊 分析</button>
+        </div>
+        <div id="statsAchView">
+          <div class="goal-card" style="flex-direction:column;align-items:flex-start;gap:6px;margin-bottom:16px">
+            <div style="font-weight:700">目前等級 Lv.<span id="statLevel">1</span></div>
+            <div style="font-size:0.85rem;color:#8a7b6d">XP <span id="statXp">0</span> / <span id="statNext">100</span> · 累積完成 <span id="statCompleted">0</span> 次</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span style="font-weight:700">成就列表</span>
+            <button class="btn btn-primary" style="flex:none;padding:7px 12px;font-size:0.82rem" onclick="openAchForm()">＋ 自訂成就</button>
+          </div>
+          <div id="achList"></div>
+        </div>
+        <div id="statsAnalyticsView" style="display:none">
+          <div class="analytics-grid" id="metricCards"></div>
+          <div class="chart-block"><h3>本月目標進度</h3><div id="monthGoalsProgress"></div></div>
+          <div class="chart-block" id="tipBlock"><h3>本月小提示</h3><p id="monthTip" style="font-size:0.9rem;color:#5a4a3a;line-height:1.6;margin:0"></p></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="panel-menu">
+      <div class="panel-header"><h2>選單</h2><button class="close-btn" onclick="closeAllPanels()">×</button></div>
+      <div class="panel-body">
+        <div id="authSection">
+          <button class="btn btn-google" id="btnLogin" onclick="loginWithGoogle()" style="margin-bottom:12px"><span>🔐</span> 使用 Gmail / Google 登入</button>
+          <button class="btn btn-secondary" id="btnLogout" onclick="logout()" style="display:none;margin-bottom:12px">登出</button>
+          <p class="sync-note" id="syncNote">登入後，資料會同步到你的帳號，換手機也能繼續玩。</p>
+        </div>
+        <div class="menu-list" style="margin-top:16px">
+          <div class="menu-item" onclick="openNameEdit()"><span class="emoji">✏️</span> 修改小貓名字</div>
+          <div class="menu-item" onclick="exportData()"><span class="emoji">💾</span> 匯出本地備份</div>
+          <div class="menu-item" onclick="importData()"><span class="emoji">📂</span> 匯入本地資料</div>
+          <div class="menu-item" onclick="resetAll()" style="color:#c45c5c"><span class="emoji">🗑</span> 重置所有資料</div>
+        </div>
+        <p style="margin-top:24px;font-size:0.8rem;color:#9a8b7e;text-align:center;line-height:1.5">習慣小貓 · Habit Cat<br>靈感來自《旅行青蛙》</p>
+      </div>
+    </div>
+    <div class="panel" id="panel-add" style="max-height:70%">
+      <div class="panel-header"><h2 id="addTitle">新增目標</h2><button class="close-btn" onclick="closePanel('add')">×</button></div>
+      <div class="panel-body">
+        <div class="form-row"><label>目標名稱</label><input id="goalTitle" placeholder="例如：早起喝一杯水" maxlength="60" /></div>
+        <div class="form-row"><label>分類</label>
+          <select id="goalCategory" onchange="onCategoryChange()">
+            <option value="健康 / 運動">健康 / 運動</option>
+            <option value="學習">學習</option>
+            <option value="心態 / 冥想">心態 / 冥想</option>
+            <option value="創意">創意</option>
+            <option value="生活">生活</option>
+            <option value="財務">財務</option>
+            <option value="戀愛">戀愛</option>
+            <option value="自訂">自訂</option>
+          </select>
+        </div>
+        <div class="form-row" id="customCategoryRow" style="display:none"><label>自訂分類名稱</label><input id="goalCategoryCustom" placeholder="例如：理財、社交…" maxlength="20" /></div>
+        <div class="form-row"><label>完成獎勵 XP</label><input id="goalXp" type="number" min="5" max="500" value="20" /></div>
+        <div class="form-row"><label>完成獎勵金幣</label><input id="goalCoin" type="number" min="1" max="200" value="5" /></div>
+        <div class="btn-row"><button class="btn btn-secondary" onclick="closePanel('add')">取消</button><button class="btn btn-primary" onclick="saveGoal()">儲存</button></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-reward" style="max-height:60%">
+      <div class="panel-header"><h2>新增自訂獎勵</h2><button class="close-btn" onclick="closePanel('reward')">×</button></div>
+      <div class="panel-body">
+        <div class="form-row"><label>獎勵內容</label><input id="rewardTitle" placeholder="例如：看一集喜歡的劇" maxlength="50" /></div>
+        <div class="form-row"><label>需要金幣</label><input id="rewardCost" type="number" min="1" max="9999" value="30" /></div>
+        <div class="btn-row"><button class="btn btn-secondary" onclick="closePanel('reward')">取消</button><button class="btn btn-green" onclick="saveReward()">加入商店</button></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-ach" style="max-height:60%">
+      <div class="panel-header"><h2>新增自訂成就</h2><button class="close-btn" onclick="closePanel('ach')">×</button></div>
+      <div class="panel-body">
+        <div class="form-row"><label>成就名稱</label><input id="achTitle" placeholder="例如：運動達人" maxlength="40" /></div>
+        <div class="form-row"><label>需要完成次數</label><input id="achTarget" type="number" min="1" max="99999" value="30" /></div>
+        <div class="form-row"><label>圖示（可選，填 emoji）</label><input id="achIcon" placeholder="🏅" maxlength="4" value="🏅" /></div>
+        <div class="btn-row"><button class="btn btn-secondary" onclick="closePanel('ach')">取消</button><button class="btn btn-primary" onclick="saveAch()">新增成就</button></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-name" style="max-height:45%">
+      <div class="panel-header"><h2>修改小貓名字</h2><button class="close-btn" onclick="closePanel('name')">×</button></div>
+      <div class="panel-body">
+        <div class="form-row"><label>名字</label><input id="settingName" maxlength="12" /></div>
+        <div class="btn-row"><button class="btn btn-secondary" onclick="closePanel('name')">取消</button><button class="btn btn-primary" onclick="saveName()">儲存</button></div>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
