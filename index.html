@@ -115,7 +115,6 @@
     .menu-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #fff; border: 1.5px solid #eee0d0; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
     .menu-item .emoji { font-size: 1.3rem; }
     .sync-note { font-size: 0.78rem; color: #9a8b7e; text-align: center; margin-top: 12px; line-height: 1.4; }
-
     .stats-tabs { display: flex; gap: 6px; margin-bottom: 14px; background: #f0e6d8; padding: 4px; border-radius: 14px; }
     .stats-tab { flex: 1; border: none; background: transparent; padding: 9px 6px; border-radius: 11px; font-size: 0.88rem; font-weight: 600; color: #8a7b6d; cursor: pointer; font-family: inherit; }
     .stats-tab.active { background: #fff; color: #5a4a3a; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
@@ -137,7 +136,18 @@
     .heat-cell.l3 { background: #7ec8a3; color: #fff; }
     .heat-cell.l4 { background: #5aaf88; color: #fff; }
     .heat-cell.today { outline: 2px solid #f0c14a; outline-offset: 1px; }
-    .heat-labels { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; font-size: 0.65rem; color: #9a8b7e; text-align: center; }
+    .heat-labels { display: none; }
+
+    .month-goal-row { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-bottom: 1px solid #f0e6d8; }
+    .month-goal-row:last-child { border-bottom: none; }
+    .month-goal-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .month-goal-name { font-weight: 600; font-size: 0.9rem; color: #4a3f35; }
+    .month-goal-status { font-size: 0.75rem; color: #9a8b7e; white-space: nowrap; }
+    .month-goal-status.done { color: #5aaf88; font-weight: 600; }
+    .progress-bar { height: 8px; background: #f0e6d8; border-radius: 99px; overflow: hidden; }
+    .progress-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #8fd4b0, #5aaf88); border-radius: 99px; }
+    .progress-bar > i.partial { background: linear-gradient(90deg, #f0c14a, #e0a830); }
+    .progress-bar > i.empty { background: #e8dcc8; width: 0 !important; }
 
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .bottom-left, .bottom-right { bottom: calc(18px + env(safe-area-inset-bottom)); }
@@ -213,14 +223,12 @@
         <div id="statsAnalyticsView" style="display:none">
           <div class="analytics-grid" id="metricCards"></div>
           <div class="chart-block">
-            <h3>依分類完成分佈</h3>
-            <div class="pie-wrap" id="pieChart"></div>
+            <h3>本月目標進度</h3>
+            <div id="monthGoalsProgress"></div>
           </div>
-          <div class="chart-block">
-            <h3>最近 35 天完成熱力圖</h3>
-            <div class="heat-labels"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-            <div class="heatmap" id="heatmap"></div>
-            <p style="font-size:0.72rem;color:#9a8b7e;margin-top:10px;text-align:center">顏色越深 = 當天完成越多</p>
+          <div class="chart-block" id="tipBlock">
+            <h3>本月小提示</h3>
+            <p id="monthTip" style="font-size:0.9rem;color:#5a4a3a;line-height:1.6;margin:0"></p>
           </div>
         </div>
       </div>
@@ -344,70 +352,152 @@
       document.getElementById("statsAnalyticsView").style.display = tab === "analytics" ? "block" : "none";
       if (tab === "analytics") renderAnalytics();
     }
-    var PIE_COLORS = ["#7ec8a3","#f0c14a","#8ab4f8","#f4a7b9","#c9b1ff","#ffb347","#7dd3c0","#e8a87c"];
+    function rateOf(done, total) {
+      if (!total) return null;
+      return Math.round(done / total * 100);
+    }
+    function daysElapsedInWeek() {
+      const d = new Date();
+      const day = d.getDay();
+      return day === 0 ? 7 : day;
+    }
+    function daysElapsedInMonth() {
+      return new Date().getDate();
+    }
+    function sumHistoryInRange(fromDate, toDate) {
+      if (!state.history) return 0;
+      let sum = 0;
+      const cur = new Date(fromDate);
+      cur.setHours(12,0,0,0);
+      const end = new Date(toDate);
+      end.setHours(12,0,0,0);
+      while (cur <= end) {
+        const key = cur.getFullYear() + "-" + (cur.getMonth()+1) + "-" + cur.getDate();
+        sum += (state.history[key] || 0);
+        cur.setDate(cur.getDate() + 1);
+      }
+      return sum;
+    }
+    function calcRates() {
+      const daily = state.goals.daily || [];
+      const weekly = state.goals.weekly || [];
+      const monthly = state.goals.monthly || [];
+      const dailyDone = daily.filter(function(g){ return g.done; }).length;
+      const weeklyDone = weekly.filter(function(g){ return g.done; }).length;
+      const monthlyDone = monthly.filter(function(g){ return g.done; }).length;
+      const todayRate = rateOf(dailyDone, daily.length);
+
+      const daysW = daysElapsedInWeek();
+      const expectedDailyW = daily.length * daysW;
+      const startW = new Date();
+      startW.setHours(12,0,0,0);
+      const dow = startW.getDay();
+      const offset = dow === 0 ? 6 : dow - 1;
+      startW.setDate(startW.getDate() - offset);
+      const histW = sumHistoryInRange(startW, new Date());
+      const dailyPartW = expectedDailyW ? histW / expectedDailyW : 1;
+      const weeklyPart = weekly.length ? weeklyDone / weekly.length : 1;
+      let weekRate;
+      if (!daily.length && !weekly.length) weekRate = null;
+      else if (!daily.length) weekRate = Math.round(weeklyPart * 100);
+      else if (!weekly.length) weekRate = Math.round(Math.min(1, dailyPartW) * 100);
+      else weekRate = Math.round((Math.min(1, dailyPartW) * 0.7 + weeklyPart * 0.3) * 100);
+
+      const daysM = daysElapsedInMonth();
+      const expectedDailyM = daily.length * daysM;
+      const startM = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      const histM = sumHistoryInRange(startM, new Date());
+      const dailyPartM = expectedDailyM ? histM / expectedDailyM : 1;
+      const monthlyPart = monthly.length ? monthlyDone / monthly.length : 1;
+      let monthRate;
+      if (!daily.length && !monthly.length && !weekly.length) monthRate = null;
+      else {
+        var parts = [];
+        if (daily.length) parts.push(Math.min(1, dailyPartM));
+        if (weekly.length) parts.push(weeklyPart);
+        if (monthly.length) parts.push(monthlyPart);
+        monthRate = Math.round(parts.reduce(function(a,b){ return a+b; },0) / parts.length * 100);
+      }
+
+      return {
+        todayRate: todayRate,
+        weekRate: weekRate,
+        monthRate: monthRate,
+        dailyDone: dailyDone, dailyTotal: daily.length,
+        weeklyDone: weeklyDone, weeklyTotal: weekly.length,
+        monthlyDone: monthlyDone, monthlyTotal: monthly.length
+      };
+    }
+    function gentleTip(rates) {
+      const monthly = state.goals.monthly || [];
+      const monthlyLeft = monthly.filter(function(g){ return !g.done; });
+      const daily = state.goals.daily || [];
+      const todayR = rates.todayRate;
+      const weekR = rates.weekRate;
+      const monthR = rates.monthRate;
+      const streak = state.streak || 0;
+
+      if (monthly.length && monthlyLeft.length === 0 && (monthR === null || monthR >= 70)) {
+        return "本月目標都完成啦，好厲害。餘下日子可以輕輕鬆鬆，或者為自己加一個小獎勵。";
+      }
+      if (monthlyLeft.length > 0 && rates.monthlyDone === 0) {
+        const name = monthlyLeft[0].title;
+        return "本月目標「" + name + "」還未開始，沒關係。這週只要做一次，就已經是很好的開始。";
+      }
+      if (monthlyLeft.length > 0 && rates.monthlyDone > 0) {
+        return "本月已完成 " + rates.monthlyDone + " 個目標，還有 " + monthlyLeft.length + " 個可以慢慢來。不急，按自己的節奏就好。";
+      }
+      if (todayR !== null && todayR === 100) {
+        return "今天的每日目標都完成了，真棒。照顧好自己，也是一種堅持。";
+      }
+      if (todayR !== null && todayR === 0 && daily.length > 0) {
+        return "今天還沒勾選也沒關係。選一個最容易的目標，完成它就已經足夠。";
+      }
+      if (todayR !== null && todayR < 50) {
+        return "今天完成了一部分，已經很好。剩下的有空再做，沒做完也不用自責。";
+      }
+      if (weekR !== null && weekR < 40) {
+        return "這週節奏慢一點也沒問題。習慣是慢慢養出來的，你願意回來看看，就已經在路上。";
+      }
+      if (streak >= 3) {
+        return "已連續 " + streak + " 天有完成紀錄，很穩定。繼續用溫柔的方式對待自己就好。";
+      }
+      if (monthR !== null && monthR >= 60) {
+        return "本月整體進度不錯。保持現在的步調，已經很值得肯定。";
+      }
+      return "不需要一次做完美。每天進步一點點，已經是在好好照顧自己的生活。";
+    }
     function renderAnalytics() {
       if (!state.history) state.history = {};
-      if (!state.categoryStats) state.categoryStats = {};
       updateStreaks();
-      var daily = state.goals.daily || [];
-      var weekly = state.goals.weekly || [];
-      var monthly = state.goals.monthly || [];
-      var activeCount = daily.length + weekly.length + monthly.length;
-      var dailyDone = daily.filter(function(g){ return g.done; }).length;
-      var dailyRate = daily.length ? Math.round(dailyDone / daily.length * 100) : 0;
-      var cards = document.getElementById("metricCards");
-      cards.innerHTML =
-        '<div class="metric-card"><div class="label">活躍習慣</div><div class="value">' + activeCount + '</div><div class="sub">日 ' + daily.length + ' · 週 ' + weekly.length + ' · 月 ' + monthly.length + '</div></div>' +
-        '<div class="metric-card"><div class="label">今日完成率</div><div class="value">' + dailyRate + '%</div><div class="sub">' + dailyDone + ' / ' + daily.length + ' 每日目標</div></div>' +
-        '<div class="metric-card"><div class="label">目前連續</div><div class="value">' + (state.streak || 0) + ' 天</div><div class="sub">有完成紀錄的連續日</div></div>' +
-        '<div class="metric-card"><div class="label">最長連續</div><div class="value">' + (state.longestStreak || 0) + ' 天</div><div class="sub">累積完成 ' + (state.completedCount || 0) + ' 次</div></div>';
-      var stats = state.categoryStats;
-      var entries = Object.keys(stats).map(function(k){ return { name: k, val: stats[k] }; }).filter(function(e){ return e.val > 0; }).sort(function(a,b){ return b.val - a.val; });
-      var pieEl = document.getElementById("pieChart");
-      if (!entries.length) {
-        pieEl.innerHTML = '<div class="empty" style="padding:16px"><div class="emoji">🥧</div>完成目標後會顯示分類分佈</div>';
+      const rates = calcRates();
+
+      function rateHtml(label, rate, sub) {
+        const val = rate === null ? "—" : (rate + "%");
+        return '<div class="metric-card"><div class="label">' + label + '</div><div class="value">' + val + '</div><div class="sub">' + sub + '</div></div>';
+      }
+      document.getElementById("metricCards").innerHTML =
+        rateHtml("今日完成率", rates.todayRate, rates.dailyTotal ? (rates.dailyDone + " / " + rates.dailyTotal + " 每日目標") : "尚未設定每日目標") +
+        rateHtml("本週完成率", rates.weekRate, "每日節奏 + 每週目標") +
+        rateHtml("本月完成率", rates.monthRate, "綜合日／週／月進度") +
+        '<div class="metric-card"><div class="label">目前連續</div><div class="value">' + (state.streak || 0) + ' 天</div><div class="sub">有完成紀錄的連續日</div></div>';
+
+      const monthly = state.goals.monthly || [];
+      const box = document.getElementById("monthGoalsProgress");
+      if (!monthly.length) {
+        box.innerHTML = '<div class="empty" style="padding:18px 8px"><div class="emoji">🌙</div>還沒有本月目標<br><span style="font-size:0.85rem">在「目標 → 每月」新增一個吧</span></div>';
       } else {
-        var total = entries.reduce(function(s,e){ return s + e.val; }, 0);
-        var cum = 0;
-        var stops = entries.map(function(e, i) {
-          var start = cum / total * 100;
-          cum += e.val;
-          var end = cum / total * 100;
-          return PIE_COLORS[i % PIE_COLORS.length] + " " + start + "% " + end + "%";
-        }).join(", ");
-        var legend = entries.map(function(e, i) {
-          var pct = Math.round(e.val / total * 100);
-          return '<div class="pie-legend-row"><span class="pie-dot" style="background:' + PIE_COLORS[i % PIE_COLORS.length] + '"></span><span>' + escapeHtml(e.name) + ' · ' + e.val + ' 次 (' + pct + '%)</span></div>';
+        box.innerHTML = monthly.map(function(g) {
+          const done = !!g.done;
+          const pct = done ? 100 : 0;
+          const status = done ? "已完成" : "未完成";
+          const statusCls = done ? "done" : "";
+          const barCls = done ? "" : "empty";
+          return '<div class="month-goal-row"><div class="month-goal-top"><span class="month-goal-name">' + escapeHtml(g.title) + '</span><span class="month-goal-status ' + statusCls + '">' + status + '</span></div><div class="progress-bar"><i class="' + barCls + '" style="width:' + pct + '%"></i></div></div>';
         }).join("");
-        pieEl.innerHTML = '<div style="width:110px;height:110px;border-radius:50%;background:conic-gradient(' + stops + ');flex-shrink:0;box-shadow:inset 0 0 0 3px #fff,0 2px 8px rgba(0,0,0,0.08)"></div><div class="pie-legend">' + legend + '</div>';
       }
-      var heat = document.getElementById("heatmap");
-      var cells = [];
-      var today = new Date();
-      today.setHours(12,0,0,0);
-      var start = new Date(today);
-      start.setDate(start.getDate() - 34);
-      while (start.getDay() !== 0) start.setDate(start.getDate() - 1);
-      var endPad = new Date(today);
-      while (endPad.getDay() !== 6) endPad.setDate(endPad.getDate() + 1);
-      var cursor = new Date(start);
-      var todayKeyStr = todayKey();
-      var rangeStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 34);
-      while (cursor <= endPad) {
-        var key = cursor.getFullYear() + "-" + (cursor.getMonth()+1) + "-" + cursor.getDate();
-        var n = (state.history[key] || 0);
-        var cls = "heat-cell";
-        if (n >= 5) cls += " l4";
-        else if (n >= 3) cls += " l3";
-        else if (n >= 2) cls += " l2";
-        else if (n >= 1) cls += " l1";
-        if (key === todayKeyStr) cls += " today";
-        var inRange = cursor >= rangeStart && cursor <= today;
-        var style = (!inRange && n === 0) ? "opacity:0.25" : "";
-        cells.push('<div class="' + cls + '" style="' + style + '" title="' + key + (n ? " · " + n + " 次" : "") + '">' + (cursor.getDate()) + '</div>');
-        cursor.setDate(cursor.getDate() + 1);
-      }
-      heat.innerHTML = cells.join("");
+
+      document.getElementById("monthTip").textContent = gentleTip(rates);
     }
     function renderAll() { renderTop(); renderGoals(); renderShop(); renderAchievements(); }
     function toggleGoal(id) {
