@@ -32,10 +32,36 @@
     .icon-btn { width: 56px; height: 56px; background: linear-gradient(180deg, #f5e6d0 0%, #e8d4b5 100%); border: 2.5px solid #c4a882; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; color: #5a4a3a; box-shadow: 0 3px 0 #b8956a, 0 4px 10px rgba(0,0,0,0.12); cursor: pointer; gap: 1px; }
     .icon-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b8956a; }
     .icon-btn .emoji { font-size: 1.4rem; line-height: 1; }
-    .level-badge { position: absolute; bottom: 26%; left: 68%; transform: translateX(-50%); z-index: 15; background: rgba(255, 252, 245, 0.55); border: 1.5px solid rgba(212, 196, 168, 0.65); border-radius: 999px; padding: 5px 14px; font-size: 0.78rem; font-weight: 600; color: #5a4a3a; box-shadow: 0 2px 10px rgba(0,0,0,0.08); pointer-events: none; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); white-space: nowrap; }
+    .level-badge {
+      position: absolute;
+      top: 68px;
+      left: 12px;
+      bottom: auto;
+      transform: none;
+      z-index: 20;
+      background: rgba(255, 252, 245, 0.72);
+      border: 1.5px solid rgba(212, 196, 168, 0.75);
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #5a4a3a;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      white-space: nowrap;
+      max-width: calc(100% - 80px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* 登入後用戶名在上，等級框在下 */
+    .game:has(.user-chip.show) .level-badge {
+      top: 102px;
+    }
     .friend-cat { position: absolute; bottom: 26%; left: 28%; right: auto; z-index: 12; width: 18%; max-width: 88px; pointer-events: none; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.12)); }
     .friend-cat img { width: 100%; height: auto; display: block; background: transparent; }
-    @media (max-width: 380px) { .friend-cat { width: 22%; left: 24%; right: auto; bottom: 24%; } .level-badge { bottom: 24%; left: 66%; font-size: 0.72rem; } }
+    @media (max-width: 380px) { .friend-cat { width: 22%; left: 24%; right: auto; bottom: 24%; } .level-badge { font-size: 0.72rem; } }
     .panel-overlay { position: absolute; inset: 0; background: rgba(40,30,20,0.35); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
     .panel-overlay.open { opacity: 1; pointer-events: auto; }
     .panel { position: absolute; left: 0; right: 0; bottom: 0; max-height: 80%; background: #fdf8f0; border-radius: 28px 28px 0 0; z-index: 50; transform: translateY(105%); transition: transform 0.32s cubic-bezier(0.32,0.72,0,1); box-shadow: 0 -8px 30px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; }
@@ -243,6 +269,6 @@
       </div>
     </div>
   </div>
-  <script src="app.js?v=20261126b"></script>
+  <script src="app.js?v=20261126c"></script>
 </body>
 </html>
